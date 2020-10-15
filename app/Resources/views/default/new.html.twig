@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Разметка</title>
+    <script>
+        let from = 0; //Тут просится глобальная переменная
+        let array_size = 10;
+
+        window.onload = function () {
+            getAll();
+        } 
+
+        function addAdvt()
+        {
+            let description = document.getElementById("inp_description").value;
+            let links = document.getElementById("inp_links").value;
+            let price = document.getElementById("inp_price").value;
+            if (description.length>1000 || description.length==0)
+            {
+                alert("Description must be not empty and up to 1000 symbols");
+                return;
+            }
+            var links_count = links.split(',');
+            if (links_count.length>3 || links.length==0)
+            {
+                
+                alert("Use at least one and not more than 3 links");
+                return;
+            }
+            if (price.length==0)
+            {
+                
+                alert("Price must be not empty");
+                return;
+            }
+            
+
+
+            let params = {};
+            params.description = description;
+            params.links = links;
+            params.price = price;
+            params = JSON.stringify(params);
+            console.log(params);
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/add", true);
+            xhr.send(params);
+
+            xhr.onload = () => alert(xhr.response);
+        }
+
+        function getAdvt()
+        {
+            let id = document.getElementById("out_id").value;
+            if (isNaN(id))
+            {
+                alert("Id must be a number");
+                return;
+            }
+
+            let params = {};
+            params.id = id;
+            params = JSON.stringify(params);
+            console.log(params);
+
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/get", true);
+            xhr.send(params);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200){
+                    let response = JSON.parse(xhr.response);
+                    let adv = {};
+                    adv.id = response.id;
+                    adv.description = response.description;
+                    adv.links = response.links;
+                    adv.price = response.price;
+
+                    document.getElementById("out_description").value=adv.description;
+                    document.getElementById("out_links").value=adv.links;
+                    document.getElementById("out_price").value=adv.price;
+                }
+                else if (xhr.readyState == 4 && xhr.status != 200){
+                    alert("Статус ответа "+xhr.status+". Сообщение:  "+xhr.response, "Alert")
+                }
+            }
+           
+        }
+
+
+        function getAll()
+        {
+            let params = {};
+            params.from = from;
+            params = JSON.stringify(params);
+            let response = '';
+
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/getAll", true);
+            xhr.send(params);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200){
+                    
+                    response = JSON.parse(xhr.response);
+                    array_size = response.length;
+                    for (let i=0; i<response.length; i++)
+                    {
+                        response[i] = JSON.parse(response[i]);
+                    }
+
+                    buildTable(response);
+                 
+                    checkButtons();
+
+                   
+                }
+                else if (xhr.readyState == 4 && xhr.status != 200){
+                    alert("Статус ответа "+xhr.status+". Сообщение:  "+xhr.response, "Alert")
+                }
+            }
+            
+        }
+
+        function buildTable(response)
+        {
+            var res = '';
+            res+='<div><table style="width: 100%; table-layout: fixed;word-wrap: break-word"><thead><tr><th style="width: 40%">Описание</th> <th style="width: 40%">Ссылки</th><th style="width: 20%">Цена</th></tr></thead><tbody>';
+            
+            for (let i = 0; i < ((10)<response.length?(10):response.length); i++) { 
+                res+='<tr><td >'+response[i].description+'</td><td>'+response[i].links+'</td><td>'+response[i].price+'</td></tr>';
+            }
+                
+            res+='</tbody> </table></div> ';
+            
+            res += '<button id="btn_left" class="btn btn-primary mb-2" onclick="goLeft()" ><</button><button id="btn_right" class="btn btn-primary mb-2" onclick="goRight()">></button>';
+            
+            var div_ = document.getElementById("table_isides") ;
+            div_.innerHTML = res;
+        }
+
+        function checkButtons()
+        {
+            if (array_size<10 && from>0)
+            {
+                let left = document.getElementById("btn_left");
+                left.disabled=false;
+                let right = document.getElementById("btn_right");
+                right.disabled = true;
+                console.log("trying to set disabled");
+            }
+            else if (from==0)
+            {
+                let left = document.getElementById("btn_left");
+                left.disabled=true;
+                let right = document.getElementById("btn_right");
+                right.disabled = false;
+                console.log("trying to set disabled");
+            }
+        }
+
+        function goRight()
+        {
+            from+=10;
+            getAll();
+            
+            
+        }
+
+        function goLeft()
+        {
+            from-=10;
+            if (from<0)
+                from=0;
+            getAll();
+        }
+    </script>
+</head>
+<body>
+    <div id='divAddForm'  style="width:50%; min-width: 400px; height: 200px; background-color:red; " >
+        <div style="width:100%; height: 70%; background-color:yellow; display: flex;align-items: stretch; ";    >
+            <div style="width: 30%" display: flex; " >
+                <div style="margin:10px">Описание</div>
+                <div style="margin:10px">Ссылки</div>
+                <div style="margin:10px">Цена</div>
+            </div>
+            <div style="width: 70%" display: flex; >
+                <div style="margin:6px"><input id="inp_description" type="text" style="width: 60%;"></input></div>
+                <div style="margin:6px"><input id="inp_links" type="text" style="width: 60%"></input></div>
+                <div style="margin:6px"><input  id="inp_price" type="text" style="width: 60%"></input></div>
+            </div>
+        </div>
+       
+        
+        <button onclick="addAdvt()" style="width: 100px; height: 20%; margin-left: 30px">Добавить объявление</button>
+    </div>
+    
+    
+    <div id='divGetForm' style="width:50%; min-width: 400px; height: 200px; background-color:green; margin-top: 15px" >
+       
+        <div style="width:100%; height: 70%; background-color:yellow; display: flex;align-items: stretch; ";    >
+            <div style="width: 30%" display: flex; " >
+                <div style="margin:10px">Id</div>
+                <div style="margin:10px">Описание</div>
+                <div style="margin:10px">Ссылки</div>
+                <div style="margin:10px">Цена</div>
+            </div>
+            <div style="width: 70%" display: flex; >
+                <div style="margin:6px"><input id="out_id" type="text" style="width: 60%;"></input></div>
+                <div style="margin:6px"><input id="out_description" type="text" style="width: 60%; "></input></div>
+                <div style="margin:6px"><input id="out_links" type="text" style="width: 60%"></input></div>
+                <div style="margin:6px"><input  id="out_price" type="text" style="width: 60%"></input></div>
+            </div>
+        </div>
+        
+       
+       <button onclick="getAdvt()" style="width: 100px; height: 20%; margin-left: 30px">Добавить объявление</button>
+    </div>
+
+    <div id="table_isides" style="width:50%; min-width: 400px; min-height: 200px; background-color:green; margin-top: 15px" >List form</div>
+
+</body>
+</html>
