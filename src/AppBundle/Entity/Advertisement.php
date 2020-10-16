@@ -1,8 +1,10 @@
 <?php
 
 namespace AppBundle\Entity;
-
+use AppBundle\Entity\Advertisement;
+use AppBundle\Entity\Attachment;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Advertisement
@@ -12,6 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Advertisement
 {
+
+    
     /**
      * @var string
      *
@@ -26,12 +30,6 @@ class Advertisement
      */
     private $price;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="links", type="text", nullable=true)
-     */
-    private $links;
 
     /**
      * @var integer
@@ -94,29 +92,6 @@ class Advertisement
         return $this;
     }
 
-    /**
-     * Get the value of links
-     *
-     * @return  string
-     */ 
-    public function getLinks()
-    {
-        return $this->links;
-    }
-
-    /**
-     * Set the value of links
-     *
-     * @param  string  $links
-     *
-     * @return  self
-     */ 
-    public function setLinks(string $links)
-    {
-        $this->links = $links;
-
-        return $this;
-    }
 
     /**
      * Get the value of id
@@ -142,13 +117,38 @@ class Advertisement
         return $this;
     }
 
+    private $attachments;
+
+
+    public function __construct()
+    {
+        $this->attachments = new ArrayCollection();
+    }
+
+    public function getAttachments()
+    {
+        $res = [];
+        foreach($this->attachments as $at)
+        {
+            $res[] = $at->getLink();
+        }
+        return $res;
+    }
+
+    public function setAttachments(?Attachment $attachment): self
+    {
+        $this->attachments = $attachment;
+
+        return $this;
+    }
+
     public function toJson()
     {
         $obj =  (object)[];
         $obj->id = $this->getId();
-        $obj->links = $this->getLinks();
         $obj->description = $this->getDescription();
         $obj->price = $this->getPrice();
+        $obj->links = $this->getAttachments();
 
         return json_encode($obj);
     }

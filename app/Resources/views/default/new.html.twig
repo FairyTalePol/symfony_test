@@ -65,7 +65,7 @@
             xhr.open("POST", "/add", true);
             xhr.send(params);
 
-            xhr.onload = () => alert(xhr.response);
+            xhr.onload = () => console.log(xhr.response);
         }
 
         function getAdvt()
@@ -80,14 +80,15 @@
             let params = {};
             params.id = id;
             params = JSON.stringify(params);
-            console.log(params);
-
+            
             let xhr = new XMLHttpRequest();
             xhr.open("POST", "/get", true);
             xhr.send(params);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200){
+                    console.log(xhr.response);
+
                     let response = JSON.parse(xhr.response);
                     let adv = {};
                     adv.id = response.id;

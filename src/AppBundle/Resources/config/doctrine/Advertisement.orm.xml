@@ -15,10 +15,10 @@
         <option name="fixed"/>
       </options>
     </field>
-    <field name="links" type="text" column="links" nullable="true">
-      <options>
-        <option name="fixed"/>
-      </options>
-    </field>
+    <one-to-many
+      field="attachments"
+      target-entity="Attachment"
+      mapped-by="advertisement"/>
+   
   </entity>
 </doctrine-mapping>

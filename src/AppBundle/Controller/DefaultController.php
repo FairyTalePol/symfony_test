@@ -6,6 +6,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Entity\Advertisement;
+use AppBundle\Entity\Attachment;
 use Symfony\Component\HttpFoundation\Response;
 
 use AppBundle\Entity\Task;
@@ -42,24 +43,46 @@ class DefaultController extends Controller
       
         if (strlen($data->description)>1000)
             $data->description = substr($data->description,0,1000);
-        if (count(explode(",",$data->links))>3)
-            $data->links=explode(",",$data->links)[0].", ".explode(",",$data->links)[1].", ".explode(",",$data->links)[2];
-        
+       
+
+
+        $data->links=explode(",",$data->links);
+
+            
+        for ($i=3; $i<count($data->links); $i++)
+        {
+            unset($data->links[$i]);
+        }
 
         $adv = new Advertisement();
         $adv->setDescription($data->description);//$data->description);
-        $adv->setLinks($data->links);
         $adv->setPrice($data->price);
 
         $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($adv);
-        try{
-            $entityManager->flush();
+        //$entityManager->persist($adv);
+
+        $attachments = [];
+        for ($i=0; $i<count($data->links); $i++)
+        {
+            $att = new Attachment();
+            $att->setAdvertisement($adv);
+            $att->setLink(trim($data->links[$i]));
+            $attachments[$i] = $att;
         }
-        catch (Exception $e) {
-            return new Response('Exception thrown: ',  $e->getMessage(), "\n",500);
+
+        for ($i=0; $i<count($data->links); $i++)
+        {
+            $entityManager->persist($attachments[$i]);
+            try{
+                $entityManager->flush();
+            }
+            catch (Exception $e) {
+                return new Response('Exception thrown: ',  $e->getMessage(), "\n",500);
+            }
+            
         }
-        
+      
+       
 
         return new Response(json_encode('Saved new adv with id '.$adv->getId()));
         
@@ -76,11 +99,14 @@ class DefaultController extends Controller
         
        
         $adv = $this->getDoctrine()->getRepository(Advertisement::class)->find($data->id);
+       
 
         if (!$adv) {
             
             return new Response('No advertisement found for id '.$data->id,404);
         }
+
+        $adv->links = "Hey mama";//$adv->getAttachments();
       
         return new Response($adv->toJson());
         
