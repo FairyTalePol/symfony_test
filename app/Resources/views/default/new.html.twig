@@ -62,7 +62,7 @@
             params = JSON.stringify(params);
             console.log(params);
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "/add", true);
+            xhr.open("POST", "/adv", true);
             xhr.send(params);
 
             xhr.onload = () => console.log(xhr.response);
@@ -82,7 +82,7 @@
             params = JSON.stringify(params);
             
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "/get", true);
+            xhr.open("GET", "/adv/"+id+"", true);
             xhr.send(params);
 
             xhr.onreadystatechange = function () {
@@ -101,7 +101,7 @@
                     document.getElementById("out_price").value=adv.price;
                 }
                 else if (xhr.readyState == 4 && xhr.status != 200){
-                    alert("Статус ответа "+xhr.status+". Сообщение:  "+xhr.response, "Alert")
+                    console.log("Статус ответа "+xhr.status+". Сообщение:  "+xhr.response, "Alert")
                 }
             }
            
@@ -115,13 +115,15 @@
             params = JSON.stringify(params);
             let response = '';
 
+            console.log("/adv?start="+from+"");
+
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "/getAll", true);
+            xhr.open("GET", "/adv?start="+from+"", true);
             xhr.send(params);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200){
-                    
+                    console.log(xhr.response);
                     response = JSON.parse(xhr.response);
                     array_size = response.length;
                     for (let i=0; i<response.length; i++)
